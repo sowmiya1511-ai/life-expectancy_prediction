@@ -12,7 +12,10 @@ with open("preprocessor.pkl", "rb") as f:
     preprocessor = pickle.load(f)
 
 with open("selected_features.pkl", "rb") as f:
-    selected_features = pickle.load(f)  # list of feature NAMES used in model
+    selected_features = pickle.load(f)
+
+# Fix TargetEncoder categorical feature names
+selected_features = [f.replace("cat__", "") for f in selected_features]
 
 with open("xgb_model.pkl", "rb") as f:
     model = pickle.load(f)
@@ -68,20 +71,18 @@ if st.button("Predict Life Expectancy"):
         # Preprocess input
         X_prep = preprocessor.transform(input_df)
 
-        # Convert to DataFrame using numeric + categorical names
-        # Numeric features
-        num_cols = preprocessor.transformers_[0][2]
+        # Build column names
+        num_cols = preprocessor.transformers_[0][2]  # numeric columns
         num_feature_names = ["num__" + c for c in num_cols]
 
-        # Categorical features (TargetEncoder: names remain the same)
-        cat_cols = preprocessor.transformers_[1][2]
-        cat_feature_names = list(cat_cols)
+        cat_cols = preprocessor.transformers_[1][2]  # categorical columns
+        cat_feature_names = list(cat_cols)  # TargetEncoder keeps original names
 
         all_feature_names = num_feature_names + cat_feature_names
 
         X_prep_df = pd.DataFrame(X_prep, columns=all_feature_names)
 
-        # Select only features used by model
+        # Select only features used by the model
         X_final = X_prep_df[selected_features]
 
         # Predict
