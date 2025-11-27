@@ -5,15 +5,19 @@ import pandas as pd
 st.set_page_config(page_title="Life Expectancy Prediction", layout="centered")
 st.title("🌍 Life Expectancy Prediction App")
 
-# Load models
+# Load models and preprocessor
 with open("preprocessor.pkl", "rb") as f:
     preprocessor = pickle.load(f)
 
 with open("selected_features.pkl", "rb") as f:
-    selected_features = pickle.load(f)   # THIS IS A LIST OF FEATURE NAMES
+    selected_features = pickle.load(f)  # List of feature NAMES after preprocessing
 
 with open("xgb_model.pkl", "rb") as f:
     model = pickle.load(f)
+
+# Load feature names saved during training
+with open("feature_names.pkl", "rb") as f:
+    feature_names = pickle.load(f)  # Must be saved during training
 
 st.subheader("Enter Input Values")
 
@@ -26,7 +30,6 @@ def int_input(label):
 # ----------------------------
 # USER INPUT FIELDS
 # ----------------------------
-
 country = st.text_input("Country", "India")
 status = st.selectbox("Status", ["Developing", "Developed"])
 year = int_input("Year")
@@ -45,6 +48,7 @@ thin5_9 = float_input("Thinness 5–9 years")
 income = float_input("Income Composition of Resources")
 schooling = float_input("Schooling")
 
+# Build input DataFrame
 input_df = pd.DataFrame({
     "Country": [country],
     "Status": [status],
@@ -68,7 +72,6 @@ input_df = pd.DataFrame({
 # ----------------------------
 # PREDICTION
 # ----------------------------
-
 if st.button("Predict Life Expectancy"):
     try:
         # Add missing columns
@@ -76,28 +79,13 @@ if st.button("Predict Life Expectancy"):
         for col in required_cols:
             if col not in input_df:
                 input_df[col] = 0
-
         input_df = input_df[required_cols]
 
-        # Preprocess
+        # Preprocess input
         X_prep = preprocessor.transform(input_df)
 
-        # Build output column names manually
-        new_cols = []
-
-        num_cols = preprocessor.transformers_[0][2]
-        cat_cols = preprocessor.transformers_[1][2]
-
-        # numerical names (unchanged)
-        new_cols.extend(["num__" + c for c in num_cols])
-
-        # categorical names (after one-hot encoding)
-        ohe = preprocessor.named_transformers_["cat"]
-        ohe_cols = ohe.get_feature_names_out(cat_cols)
-        new_cols.extend(ohe_cols)
-
-        # Convert to DataFrame
-        X_prep_df = pd.DataFrame(X_prep, columns=new_cols)
+        # Convert to DataFrame using saved feature names
+        X_prep_df = pd.DataFrame(X_prep, columns=feature_names)
 
         # Select only your chosen features
         X_final = X_prep_df[selected_features]
