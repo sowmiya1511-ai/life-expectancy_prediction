@@ -10,7 +10,7 @@ with open("preprocessor.pkl", "rb") as f:
     preprocessor = pickle.load(f)
 
 with open("selected_features.pkl", "rb") as f:
-    selected_features = pickle.load(f)
+    selected_features = pickle.load(f)   # THIS MUST BE A LIST OF COLUMN INDEXES
 
 with open("xgb_model.pkl", "rb") as f:
     model = pickle.load(f)
@@ -23,25 +23,31 @@ def float_input(label):
 def int_input(label):
     return st.number_input(label, value=0)
 
-# Only selected features
-country = st.text_input("Country", "India")                         # cat__Country
-status = st.selectbox("Status", ["Developing", "Developed"])       # cat__Status
-year = int_input("Year")                                           # num__Year
-adult = float_input("Adult Mortality")                             # num__Adult Mortality
-alcohol = float_input("Alcohol")                                   # num__Alcohol
-exp = float_input("Percentage Expenditure")                        # num__percentage expenditure
-hep_b = float_input("Hepatitis B (%)")                             # num__Hepatitis B
-measles = float_input("Measles Cases")                             # num__Measles 
-bmi = float_input("BMI")                                           # num__ BMI 
-under5 = float_input("Under-Five Deaths")                          # num__under-five deaths 
-polio = float_input("Polio (%)")                                   # num__Polio
-diph = float_input("Diphtheria (%)")                               # num__Diphtheria 
-hiv = float_input("HIV/AIDS (%)")                                  # num__ HIV/AIDS
-gdp = float_input("GDP")                                           # num__GDP
-thin5_9 = float_input("Thinness 5–9 years")                        # num__ thinness 5-9 years
-income = float_input("Income Composition of Resources")            # num__Income composition of resources
-schooling = float_input("Schooling")                               # num__Schooling
+# ----------------------------
+# USER INPUT FIELDS
+# ----------------------------
 
+country = st.text_input("Country", "India")
+status = st.selectbox("Status", ["Developing", "Developed"])
+year = int_input("Year")
+adult = float_input("Adult Mortality")
+alcohol = float_input("Alcohol")
+exp = float_input("Percentage Expenditure")
+hep_b = float_input("Hepatitis B (%)")
+measles = float_input("Measles Cases")
+bmi = float_input("BMI")
+under5 = float_input("Under-Five Deaths")
+polio = float_input("Polio (%)")
+diph = float_input("Diphtheria (%)")
+hiv = float_input("HIV/AIDS (%)")
+gdp = float_input("GDP")
+thin5_9 = float_input("Thinness 5–9 years")
+income = float_input("Income Composition of Resources")
+schooling = float_input("Schooling")
+
+# ----------------------------
+# MAKE INPUT DATAFRAME
+# ----------------------------
 
 input_df = pd.DataFrame({
     "Country": [country],
@@ -63,23 +69,29 @@ input_df = pd.DataFrame({
     "Schooling": [schooling]
 })
 
+# ----------------------------
+# PREDICT BUTTON
+# ----------------------------
+
 if st.button("Predict Life Expectancy"):
     try:
         # Ensure all required columns exist
         required_cols = preprocessor.feature_names_in_
         for col in required_cols:
             if col not in input_df.columns:
-                input_df[col] = 0  # missing columns filled automatically
+                input_df[col] = 0
 
-        # Reorder columns exactly as preprocessor expects
+        # Reorder columns in the correct order
         input_df = input_df[required_cols]
 
-        # Preprocess
+        # Apply preprocessing
         X_prep = preprocessor.transform(input_df)
 
-        # Select features
-        X_final = pd.DataFrame(X_prep, columns=preprocessor.get_feature_names_out())
-        X_final = X_final[selected_features]
+        # Convert to DataFrame WITHOUT feature names
+        X_prep_df = pd.DataFrame(X_prep)
+
+        # Select only the chosen feature indexes
+        X_final = X_prep_df.iloc[:, selected_features]
 
         # Predict
         pred = model.predict(X_final)[0]
@@ -88,5 +100,4 @@ if st.button("Predict Life Expectancy"):
 
     except Exception as e:
         st.error("Error occurred.")
-        st.write(e)
-
+        st.write(str(e))
