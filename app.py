@@ -5,9 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="Life Expectancy Prediction", layout="centered")
 st.title("🌍 Life Expectancy Prediction App")
 
-# ----------------------------
-# Load models and preprocessor
-# ----------------------------
+
 with open("preprocessor.pkl", "rb") as f:
     preprocessor = pickle.load(f)
 
@@ -22,18 +20,14 @@ with open("xgb_model.pkl", "rb") as f:
 
 st.subheader("Enter Input Values")
 
-# ----------------------------
-# Input helper functions
-# ----------------------------
+
 def float_input(label):
     return st.number_input(label, value=0.0)
 
 def int_input(label):
     return st.number_input(label, value=0)
 
-# ----------------------------
-# User input fields
-# ----------------------------
+
 inputs = {
     "Country": st.text_input("Country", "India"),
     "Status": st.selectbox("Status", ["Developing", "Developed"]),
@@ -56,9 +50,7 @@ inputs = {
 
 input_df = pd.DataFrame([inputs])
 
-# ----------------------------
-# Prediction
-# ----------------------------
+
 if st.button("Predict Life Expectancy"):
     try:
         # Ensure all required columns exist
@@ -93,3 +85,4 @@ if st.button("Predict Life Expectancy"):
     except Exception as e:
         st.error("Error occurred during prediction.")
         st.write(str(e))
+
