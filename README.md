@@ -54,3 +54,5 @@ pip install -r requirements.txt
 2. Run the Streamlit App
 streamlit run app/streamlit_app.py
 
+<img width="1062" height="740" alt="Image" src="https://github.com/user-attachments/assets/7e1afe55-d822-400b-8431-e95285ac8b6f" />
+
